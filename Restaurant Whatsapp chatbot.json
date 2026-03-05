@@ -1,0 +1,375 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -352,
+        32
+      ],
+      "id": "732a5bc9-8d88-40aa-8943-0cab120a3795",
+      "name": "When chat message received",
+      "webhookId": "33edd623-6039-47a2-99b5-82abe867a128"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messages[0].text.body }}",
+        "options": {
+          "systemMessage": "You are a smart food ordering assistant for \"MDA Restaurant\".  \n\nRules:  \n\n1. When a user sends their first message (like hi, hello), reply with:  \n\"Welcome to MDA Restaurant 🍽️  \nHow can I help you today?  \n- 🛒 Place an order  \n- ℹ️ FAQ / Information  \n- 📦 Check order / stock\"  \n\n(👉 Keep the tone friendly like a food delivery app, not like a product e-commerce site)  \n\n2. If user wants *order*:  \n- Ask step by step: name, food item, quantity  \n- Check Inventory sheet before confirming  \n   - If available → \"Your order for *[item]* (x quantity) is confirmed ✅\"  \n   - If not available → \"Sorry, *[item]* is out of stock ❌. Available options: [list items]\"  \n- Only confirmed orders go into the Orders sheet  \n- In Orders sheet always include:  \n   Status = Confirmed / Rejected  \n   Description = \"Order accepted (item available)\" OR \"Order rejected (out of stock)\"  \n\n3. If user wants *FAQ*:  \n- Answer short and clear (delivery time, payment method, restaurant hours)  \n\n4. If user wants *check order* or *check stock*:  \n- Ask for food name or order id  \n- Look up in Google Sheets (Orders / Inventory)  \n   - If checking order → reply with status (Confirmed / Rejected / Cancelled / Delivered)  \n   - If checking stock → reply with available quantity of that food  \n   - Also list all *available* food items with quantity if requested  \n\n5. If user wants *cancel order*:  \n- Reply politely:  \n  \"Sorry 🙏 I cannot cancel orders directly.  \n   Please call the restaurant owner first and inform them.  \n   Owner Contact: +95 1224567890\"  \n\n6. Always reply in short text like a normal WhatsApp chat  \n- Do not use **bold** or long paragraphs  \n- Use *stars* only for highlighting words  \n- Keep tone friendly, polite, and food-delivery app style  \n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "9fc3db2f-c3c4-478a-baab-bada27061799",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}",
+        "contextWindowLength": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        208
+      ],
+      "id": "ce85df6d-0f8f-4396-96a2-e49406de0c38",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1VDfztnW5_ZYWHZEcCRG62C0PxsLqh65gxb71_Ozte-8",
+          "mode": "list",
+          "cachedResultName": "Get inventory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VDfztnW5_ZYWHZEcCRG62C0PxsLqh65gxb71_Ozte-8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 323356191,
+          "mode": "list",
+          "cachedResultName": "Orders",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VDfztnW5_ZYWHZEcCRG62C0PxsLqh65gxb71_Ozte-8/edit#gid=323356191"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Customer Name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Customer_Name', ``, 'string') }}",
+            "Food Item": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Food_Item', ``, 'string') }}",
+            "Quantity Ordered": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Quantity_Ordered', ``, 'string') }}",
+            "Status": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Status', ``, 'string') }}",
+            "Order Date": "={{ $now.format('yyyy-MM-dd hh-mm-ss a') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Customer Name",
+              "displayName": "Customer Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Food Item",
+              "displayName": "Food Item",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Quantity Ordered",
+              "displayName": "Quantity Ordered",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Order Date",
+              "displayName": "Order Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        592,
+        288
+      ],
+      "id": "63afe878-eaeb-4631-81e1-1a8a13cb8ea8",
+      "name": "Post orders",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Xhp2HGgYgdk41o6W",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1VDfztnW5_ZYWHZEcCRG62C0PxsLqh65gxb71_Ozte-8",
+          "mode": "list",
+          "cachedResultName": "Get inventory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VDfztnW5_ZYWHZEcCRG62C0PxsLqh65gxb71_Ozte-8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1451860566,
+          "mode": "list",
+          "cachedResultName": "FAQ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VDfztnW5_ZYWHZEcCRG62C0PxsLqh65gxb71_Ozte-8/edit#gid=1451860566"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        464,
+        192
+      ],
+      "id": "78b392b1-6cfb-45f2-8f2b-b5cf36dfa4af",
+      "name": "FAQ",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Xhp2HGgYgdk41o6W",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1VDfztnW5_ZYWHZEcCRG62C0PxsLqh65gxb71_Ozte-8",
+          "mode": "list",
+          "cachedResultName": "Get inventory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VDfztnW5_ZYWHZEcCRG62C0PxsLqh65gxb71_Ozte-8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Inventory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VDfztnW5_ZYWHZEcCRG62C0PxsLqh65gxb71_Ozte-8/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        368,
+        208
+      ],
+      "id": "20e45655-00ed-48b9-aea9-4cf3a08b2fc5",
+      "name": "Inventory",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Xhp2HGgYgdk41o6W",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        0
+      ],
+      "id": "1c9ad78a-ee91-497f-8a0b-ab2d6dcffc83",
+      "name": "WhatsApp Trigger",
+      "webhookId": "02a42350-6930-4ecd-974d-b4ffa8535d3d",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "wjiVMzxsJQMTTStH",
+          "name": "WhatsApp OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "1036368649557827",
+        "recipientPhoneNumber": "+91 9529389244",
+        "textBody": "=Working {{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        0
+      ],
+      "id": "c3ba027d-7afc-4db9-8e23-b70f6d08ea1f",
+      "name": "Send message",
+      "webhookId": "b6e1a9bf-ea4e-41dc-8231-2a6e6d4d19a4",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "4qNKlNMojoBN0jNT",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatCohere",
+      "typeVersion": 1,
+      "position": [
+        80,
+        208
+      ],
+      "id": "a92bf247-7a24-4d2a-b39d-9c6508475bd0",
+      "name": "Cohere Chat Model",
+      "credentials": {
+        "cohereApi": {
+          "id": "q0t3MfLobNuJ2Xgg",
+          "name": "CohereApi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        []
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post orders": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FAQ": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inventory": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cohere Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c008256a-1835-491e-9ab9-fb41b9de8659",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4ed57ad9b5b255abe98f83a666fcb64d274bf16b52865b0e893b1351c9bb89b5"
+  },
+  "id": "VD24CANGqZM1OQiG",
+  "tags": []
+}
